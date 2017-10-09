@@ -11,7 +11,7 @@ from heart_rate_monitor import HeartRateMonitor
 
 class HeartRateAlarm:
 
-    def __init__(self, alarm_heart_rate_min = 40, alarm_heart_rate_max = 180):
+    def __init__(self, alarm_heart_rate_min=40, alarm_heart_rate_max=180):
         self.alarm_heart_rate_min = alarm_heart_rate_min
         self.alarm_heart_rate_max = alarm_heart_rate_max
         self.alarm_now = False
@@ -35,36 +35,26 @@ class HeartRateAlarm:
 
         pygame.mixer.init()
         pygame.mixer.music.load("start.mp3")
-        pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(1)
 
-    def stop_and_shutdown(self, gpio_pin):
-        print("GPIO[%d] callback" % gpio_pin)
-        if(gpio_pin != 13):
-            return
-        self.stop()
-        sleep(1)
-        print("sudo shutdown -h now")
-        #sys.exit(0)
-        os.system("sudo shutdown -h now")
-
     def check_heart_rate(self, hr):
-        if(hr < self.alarm_heart_rate_min or self.alarm_heart_rate_max < hr):
+        if self.alarm_heart_rate_min <= hr <= self.alarm_heart_rate_max:
+            sys.stdout.write("%d " % hr)
+            sys.stdout.flush()
+            if self.alarm_now:
+                sys.stdout.write("alarm off. ")
+                self.alarm_now = False
+                pygame.mixer.music.stop()
+        else:
             sys.stdout.write("%d! " % hr)
             sys.stdout.flush()
-            if(not self.alarm_now):
+            if not self.alarm_now:
                 sys.stdout.write("alarm on. ")
                 self.alarm_now = True
                 pygame.mixer.music.load("alert.mp3")
                 pygame.mixer.music.set_volume(1.0)
                 pygame.mixer.music.play(-1)
-        else:
-            sys.stdout.write("%d " % hr)
-            sys.stdout.flush()
-            if(self.alarm_now):
-                sys.stdout.write("alarm off. ")
-                self.alarm_now = False
-                pygame.mixer.music.stop()
         self.shared_heart_rate.value = hr
         self.shared_heart_rate_update_time.value = time.time()
 
@@ -74,13 +64,23 @@ class HeartRateAlarm:
         self.monitor.stop()
         pygame.mixer.music.stop()
         pygame.mixer.music.load("stop.mp3")
-        pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(1)
         sleep(1)
         self.shared_heart_rate.value = 0
         self.led_process.terminate()
         self.led.stop()
         GPIO.cleanup() 
+
+    def stop_and_shutdown(self, gpio_pin):
+        print("GPIO[%d] callback" % gpio_pin)
+        if gpio_pin != 13:
+            return
+        self.stop()
+        sleep(1)
+        print("sudo shutdown -h now")
+        #sys.exit(0)
+        os.system("sudo shutdown -h now")
 
 
 class LEDBlinker:
@@ -98,10 +98,10 @@ class LEDBlinker:
     def blink_with_bpm(self, bpm, update_time):
         while True:
             temp_bpm = bpm.value
-            if(update_time.value < time.time() - 3):
+            if update_time.value < time.time() - 3:
                 GPIO.output(21, GPIO.HIGH)
                 sleep(1)
-            elif(temp_bpm == 0):
+            elif temp_bpm == 0:
                 GPIO.output(21, GPIO.LOW)
                 sleep(1)
             else:

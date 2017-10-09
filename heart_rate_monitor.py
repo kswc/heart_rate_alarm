@@ -25,8 +25,8 @@ class HeartRateMonitor(event.EventCallback):
 
     def __init__(self, call_func, serial = None, netkey = None):
         self.call_func = call_func
-        self.serial = HeartRateMonitor.DEFAULT_SERIAL if(serial is None) else serial
-        self.netkey = HeartRateMonitor.DEFAULT_NETKEY if(netkey is None) else netkey
+        self.serial = serial or HeartRateMonitor.DEFAULT_SERIAL
+        self.netkey = netkey or HeartRateMonitor.DEFAULT_NETKEY
         self.antnode = None
         self.channel = None
 
@@ -89,3 +89,4 @@ if __name__ == '__main__':
             print("monitor stop")
             hrm.stop()
             sys.exit(0)
+

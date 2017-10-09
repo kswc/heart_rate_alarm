@@ -7,7 +7,7 @@ from heart_rate_monitor import HeartRateMonitor
 
 class HeartRateAlarm:
 
-    def __init__(self, alarm_heart_rate_min = 40, alarm_heart_rate_max = 180):
+    def __init__(self, alarm_heart_rate_min=40, alarm_heart_rate_max=180):
         self.alarm_heart_rate_min = alarm_heart_rate_min
         self.alarm_heart_rate_max = alarm_heart_rate_max
         self.alarm_now = False
@@ -23,22 +23,22 @@ class HeartRateAlarm:
         pygame.mixer.music.play(1)
 
     def check_heart_rate(self, hr):
-        if(hr < self.alarm_heart_rate_min or self.alarm_heart_rate_max < hr):
+        if self.alarm_heart_rate_min <= hr <= self.alarm_heart_rate_max:
+            sys.stdout.write("%d " % hr)
+            sys.stdout.flush()
+            if self.alarm_now:
+                sys.stdout.write("alarm off. ")
+                self.alarm_now = False
+                pygame.mixer.music.stop()
+        else:
             sys.stdout.write("%d! " % hr)
             sys.stdout.flush()
-            if(not self.alarm_now):
+            if not self.alarm_now:
                 sys.stdout.write("alarm on. ")
                 self.alarm_now = True
                 pygame.mixer.music.load("alert.mp3")
                 pygame.mixer.music.set_volume(1.0)
                 pygame.mixer.music.play(-1)
-        else:
-            sys.stdout.write("%d " % hr)
-            sys.stdout.flush()
-            if(self.alarm_now):
-                sys.stdout.write("alarm off. ")
-                self.alarm_now = False
-                pygame.mixer.music.stop()
 
     def stop(self):
         self.alarm_now = False
